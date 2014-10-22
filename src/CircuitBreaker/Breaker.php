@@ -17,12 +17,12 @@ namespace betandr\CircuitBreaker;
  *
  * PHP version 5.4
  *
- * @package  PackageName
+ * @package  CircuitBreaker
  * @author   Elisabeth Anderson <bet@andr.io>
  * @license  http://www.php.net/license/3_01.txt  PHP License 3.01
  * @link     https://github.com/bbc-rmp/deploy-pipeline
  */
-class CircuitBreaker
+class Breaker
 {
     /**
      * Check if circuit breaker is currently closed (an antonym for isOpen())

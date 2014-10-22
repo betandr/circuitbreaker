@@ -6,17 +6,27 @@ against a cascade of failures which could adversely affect an application's perf
 The CurcuitBreaker monitors successful and non-successful transactions then provides
 feedback, by way of tripping the circuit breaker if the failures reach a certain threshold.
 
+To construct a circuit breaker use:
+
+```php
+$breaker = new Breaker(new ArrayPersistence);
+```
+...then optionally (the default is 10) you can set the failure threshold...
+```php
+$breaker->setThreshold(1);
+```
+
 The circuit breaker is used with the code:
 
 ```php
-if ($app['breaker']->isClosed()) {
+if ($breaker->isClosed()) {
     try {
         // YOUR EXPENSIVE CALL HERE
-        $app['breaker']->success();
+        $breaker->success();
 
     } catch (Exception $e) {
         // log a failure
-        $app['breaker']->failure();
+        $breaker->failure();
     }
 } else {
     // FALLBACK TO SOMETHING ELSE HERE
@@ -32,7 +42,7 @@ way any subsequent requests can fail quickly and by handled by the client.
 If the circuit breaker opens then your logical test will fail in your mainline
 code. However if you subsequently register a successful transaction then it will
 re-close the circuit breaker and your code will be able to execute. This is so
-systems are able to recover if the upstream problem is resolved. *This will be* 
+systems are able to recover if the upstream problem is resolved. *This will be*
 *re-factored to use a 'half-open' method which will change the breaker into a*
 *half-state where exploratory transactions can be completed to test to see if the*
 *situation has resolved.*
@@ -49,5 +59,5 @@ phpunit --bootstrap src/autoload.php tests
 TODO
 ----
 
-* Complete impementation
-* Add 'half-open' impl
+* Add 'half-open' impl using time-outs to re-try
+* Add persistence mechanisms

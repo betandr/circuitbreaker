@@ -1,4 +1,4 @@
-CircuitBreaker
+CircuitBreaker (currently in development)
 ==============
 
 This implementation of the CircuitBreaker pattern provide a mechanism for resilience

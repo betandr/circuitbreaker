@@ -47,6 +47,13 @@ systems are able to recover if the upstream problem is resolved. *This will be*
 *half-state where exploratory transactions can be completed to test to see if the*
 *situation has resolved.*
 
+Persistence
+----
+
+Transaction counts are stored using implementation defined by the `PersistenceInterface`
+interface. Currently only an `ArrayPersistence` implementation is available which
+uses a volatile array.
+
 Tests
 ----
 

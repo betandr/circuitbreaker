@@ -64,7 +64,7 @@ $breaker->close();
 ```php
 $breaker->reset();
 ```
-
+...which re-closes the circuit breaker and zeros the failure counter.
 
 Persistence
 ----

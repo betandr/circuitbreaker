@@ -87,7 +87,32 @@ class Breaker
         }
 
         $this->_persistence->set($key, $value);
+    }
 
+    /**
+     * Immediately open the circuit breaker
+     */
+    public function open()
+    {
+        $this->_breakerClosed = false;
+    }
+
+    /**
+     * Immediately open the circuit breaker
+     */
+    public function close()
+    {
+        $this->_breakerClosed = true;
+    }
+
+    /**
+     * Close the circuit breaker and reset the failure count
+     */
+    public function reset()
+    {
+        $this->close();
+        $key = 'failure_transactions';
+        $this->_persistence->set($key, 0);
     }
 
     /**

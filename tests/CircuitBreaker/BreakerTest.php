@@ -46,4 +46,34 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($breaker->isClosed(), 'Breaker should re-close when success registered');
     }
 
+    public function testOpeningBreaker()
+    {
+        $breaker = new Breaker(new ArrayPersistence);
+
+        $breaker->open();
+        $this->assertTrue($breaker->isOpen(), 'Breaker should be open when explicitly opened');
+    }
+
+    public function testReClosingBreaker()
+    {
+        $breaker = new Breaker(new ArrayPersistence);
+
+        $breaker->open();
+        $this->assertTrue($breaker->isOpen(), 'Breaker should be open when explicitly opened');
+
+        $breaker->close();
+        $this->assertTrue($breaker->isClosed(), 'Breaker should be closed when explicitly closed');
+    }
+
+    public function testResettingBreaker()
+    {
+        $breaker = new Breaker(new ArrayPersistence);
+
+        $breaker->open();
+        $this->assertTrue($breaker->isOpen(), 'Breaker should be open when explicitly opened');
+
+        $breaker->reset();
+        $this->assertTrue($breaker->isClosed(), 'Breaker should be closed when reset');
+    }
+
 }

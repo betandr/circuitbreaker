@@ -28,6 +28,15 @@ responding) then the system can 'trip' (open) the circuit so the request is no
 longer performed. This can prevent systems from timing out and causing more issues
 by continually attempting requests on services which are experiencing issues.
 
+Tests
+----
+
+To run all tests, use:
+
+```
+phpunit --bootstrap src/autoload.php tests
+```
+
 TODO
 ----
 

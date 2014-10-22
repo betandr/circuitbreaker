@@ -47,6 +47,25 @@ systems are able to recover if the upstream problem is resolved. *This will be*
 *half-state where exploratory transactions can be completed to test to see if the*
 *situation has resolved.*
 
+Short-cut Operation
+----
+
+The circuit breaker can be immediately tripped by using:
+
+```php
+$breaker->open();
+```
+
+...and closed:
+```php
+$breaker->close();
+```
+...or reset:
+```php
+$breaker->reset();
+```
+
+
 Persistence
 ----
 

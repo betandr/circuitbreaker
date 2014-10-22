@@ -12,6 +12,8 @@
 
 namespace betandr\CircuitBreaker;
 
+use betandr\CircuitBreaker\Persistence\PersistenceInterface;
+
 /**
  * Circuit Breaker
  *
@@ -24,6 +26,23 @@ namespace betandr\CircuitBreaker;
  */
 class Breaker
 {
+    private $_threshold = 10;
+    private $_persistence;
+    private $_breakerClosed = true;
+
+    public function __construct(PersistenceInterface $persistence = null)
+    {
+        $this->_persistence = $persistence;
+    }
+
+    public function setThreshold($threshold) {
+        $this->_threshold = $threshold;
+    }
+
+    public function getThreshold() {
+        return $this->_threshold;
+    }
+
     /**
      * Check if circuit breaker is currently closed (an antonym for isOpen())
      *
@@ -31,7 +50,7 @@ class Breaker
      */
     public function isClosed()
     {
-        return !$this->isOpen();
+        return $this->_breakerClosed;
     }
 
     /**
@@ -41,7 +60,7 @@ class Breaker
      */
     public function isOpen()
     {
-        return true;
+        return !$this->isClosed();
     }
 
     /**
@@ -49,7 +68,9 @@ class Breaker
      */
     public function success()
     {
-
+        if ($this->_breakerClosed === false) {
+            $this->_breakerClosed = true;
+        }
     }
 
     /**
@@ -57,6 +78,15 @@ class Breaker
      */
     public function failure()
     {
+        $key = 'failure_transactions';
+        $value = $this->_persistence->get($key);
+        $value++;
+
+        if ($value >= $this->_threshold) {
+            $this->_breakerClosed = false;
+        }
+
+        $this->_persistence->set($key, $value);
 
     }
 

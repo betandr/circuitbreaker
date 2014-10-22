@@ -78,8 +78,11 @@ class Breaker
      */
     public function failure()
     {
+
+
         $key = 'failure_transactions';
         $value = $this->_persistence->get($key);
+        if ($value === NULL) { $value = 0; }
         $value++;
 
         if ($value >= $this->_threshold) {

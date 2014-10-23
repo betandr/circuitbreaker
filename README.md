@@ -53,9 +53,9 @@ if ($breaker->isClosed()) {
 }
 ```
 
-If the system reaches a threshold of registered failures (the client may me experiencing
+If the system reaches a threshold of registered failures (the client may be experiencing
 something such as  a back-end not responding) it will 'trip' open the circuit so
-subsequent calls to isClosed return false (or it's opposite 'isOpen' method returns true).
+subsequent calls to `isClosed()` return false (or it's opposite `isOpen()` method returns true).
 This can prevent the situation where requests time out which can cause more issues
 by continually attempting requests on services which are unavailable. So any
 subsequent requests can fail quickly and by handled by the client.
@@ -66,15 +66,17 @@ subsequently register a successful transaction then it will re-close the circuit
 breaker, assuming the problems have now resolved and your code is able to execute.
 This is so systems are able to recover if the upstream problem is resolved.
 
-If 'will retry' (`set/getWillRetryAfterTimeout()`) is set to true, any calls to
-`isClosed()` will return a true if the timeout (`set/getTimeout()`) has expired since the
+If 'will retry' [`set/getWillRetryAfterTimeout()`] is set to true, any calls to
+`isClosed()` will return a true if the timeout [`set/getTimeout()`] has expired since the
 last registered failure. This is so systems are given the chance to recover and the
 circuit breaker can be re-closed if upstream services begin working again.
-In this 'half-open' mode, the client can try another request, if it fails then
-the timeout will be reset. If successful, the client can register a success
-which will close the breaker properly. By setting 'will retry' to false, the breaker
-will remain closed until explicitly closed with a successful transaction registered or
-by calling the explicit `close()` method (see 'Short-cut Operation').
+In this 'half-open' mode, the client can try another request; if it fails then
+the timeout will be reset. If successful, the client can register that success by
+calling `success()` which will close the breaker properly.
+
+It 'will retry' is set to false the breaker will remain open until explicitly
+closed with a successful transaction registered by calling `successs()` or by
+calling the explicit `close()` method (see 'Short-cut Operation').
 
 Short-cut Operation
 ----
@@ -101,7 +103,21 @@ Persistence
 
 Transaction counts are stored using implementation defined by the `PersistenceInterface`
 interface. Currently only an `ArrayPersistence` implementation is available which
-uses a volatile array.
+uses a volatile array. You can write your own provider by implementing:
+
+```php
+interface PersistenceInterface
+{
+    public function get($key);
+    public function set($key, $value);
+}
+```
+
+...and passing that into the `Breaker::build` factory method. Such as:
+
+```php
+$breaker = Breaker::build('testBreaker', new YourOwnPersistenceProvider);
+```
 
 Tests
 ----

@@ -32,6 +32,7 @@ class Breaker
     private $_persistence;
     private $_breakerClosed = true;
     private $_willRetry = true;
+    private $_lastFailureTime;
 
     protected function __construct($name, $persistence, $params = null)
     {
@@ -46,8 +47,8 @@ class Breaker
             $this->_timeout = $params['timeout'];
         }
 
-        if (isset($params['will_retry']) && is_int($params['will_retry'])) {
-            $this->_retry = $params['will_retry'];
+        if (isset($params['retry']) && is_bool($params['retry'])) {
+            $this->_willRetry = $params['retry'];
         }
     }
 
@@ -75,13 +76,32 @@ class Breaker
     public function setWillRetryAfterTimeout($willRetry) { if ($willRetry) { $this->_willRetry = true; } }
     public function getWillRetryAfterTimeout() { return $this->_willRetry; }
 
+    public function getLastFailureTime() { return $this->_lastFailureTime; }
+
     /**
-     * Check if circuit breaker is currently closed
+     * Check if circuit breaker is currently closed. If 'will retry' is set to true,
+     * any checks for isClosed can return a true if the timeout has expired since the
+     * last failure. This is so systems are given the chance to recover and the
+     * circuit breaker can re-close itself if upstream services begin working again.
+     * In this 'half-open' mode, the client can try another request, if it fails then
+     * the timeout will be reset. If successful, the client can register a success
+     * which will close the breaker properly.
      *
      * @return a boolean
      */
     public function isClosed()
     {
+        if ($this->_willRetry) {
+            // If threshold reached and we want to retry, return true
+            // Don't reset breaker though, let a registered success do that.
+            $now = time();
+            $lastFailurePlusTimeout = $this->_lastFailureTime + ($this->_timeout * 1000);
+
+            if (isset($this->_lastFailureTime) && ($now >= $lastFailurePlusTimeout)) {
+                return true;
+            }
+        }
+
         return $this->_breakerClosed;
     }
 
@@ -111,8 +131,6 @@ class Breaker
      */
     public function failure()
     {
-
-
         $key = 'failure_transactions';
         $value = $this->_persistence->get($key);
         if ($value === NULL) { $value = 0; }
@@ -120,6 +138,7 @@ class Breaker
 
         if ($value >= $this->_threshold) {
             $this->_breakerClosed = false;
+            $this->_lastFailureTime = time();
         }
 
         $this->_persistence->set($key, $value);

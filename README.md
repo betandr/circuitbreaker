@@ -4,7 +4,7 @@ CircuitBreaker (v 0.1)
 This implementation of the CircuitBreaker pattern provide a mechanism for resilience
 against a cascade of failures which could adversely affect an application's performance.
 The CircuitBreaker monitors successful and non-successful transactions then provides
-feedback, by way of tripping the circuit breaker if the failures reach a certain threshold.
+feedback, by way of tripping (opening) the circuit breaker, if the failures reach a certain threshold.
 
 To construct a circuit breaker (with ArrayPersistence storage) use:
 

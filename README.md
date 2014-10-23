@@ -6,7 +6,7 @@ against a cascade of failures which could adversely affect an application's perf
 The CircuitBreaker monitors successful and non-successful transactions then provides
 feedback, by way of tripping the circuit breaker if the failures reach a certain threshold.
 
-To construct a circuit breaker use:
+To construct a circuit breaker (with ArrayPersistence storage) use:
 
 ```php
 $breaker = Breaker::build('breakerName', new ArrayPersistence);

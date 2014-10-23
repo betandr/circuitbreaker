@@ -13,7 +13,15 @@ $breaker = Breaker::build('breakerName', new ArrayPersistence);
 ```
 ...or with parameters:
 ```php
-Breaker::build('testBreaker', new ArrayPersistence, array('timeout' => 300, 'threshold' => 1, 'will_retry' => false));
+Breaker::build(
+    'testBreaker',
+    new ArrayPersistence,
+    array(
+        'timeout' => 300,
+        'threshold' => 1,
+        'will_retry' => false
+    )
+);
 ```
 ...or set the values long-hand:
 ```php

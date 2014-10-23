@@ -107,4 +107,14 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($timeout, $breaker->getTimeout(), 'Timeout should be set in params');
     }
+
+    public function testSettingTimeoutAndThresholdViaParams()
+    {
+        $threshold = 99;
+        $timeout = 999;
+        $breaker = Breaker::build('testBreaker', new ArrayPersistence, array('timeout' => $timeout, 'threshold' => $threshold));
+
+        $this->assertEquals($timeout, $breaker->getTimeout(), 'Timeout should be set in params');
+        $this->assertEquals($threshold, $breaker->getThreshold(), 'Threshold should be set in params');
+    }
 }

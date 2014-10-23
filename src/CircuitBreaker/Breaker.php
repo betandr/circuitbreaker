@@ -31,6 +31,7 @@ class Breaker
     private $_timeout = 6000;
     private $_persistence;
     private $_breakerClosed = true;
+    private $_willRetry = true;
 
     protected function __construct($name, $persistence, $params = null)
     {
@@ -44,21 +45,35 @@ class Breaker
         if (isset($params['timeout']) && is_int($params['timeout'])) {
             $this->_timeout = $params['timeout'];
         }
+
+        if (isset($params['will_retry']) && is_int($params['will_retry'])) {
+            $this->_retry = $params['will_retry'];
+        }
     }
 
+    /**
+     * Construct a new Breaker instance.
+     *
+     * @param $name a string value to identify this breaker
+     *
+     * @return a boolean
+     */
     public static function build($name, PersistenceInterface $persistence = null, $params = null)
     {
-
-        // build('breakerName', array('check_timeout' => 6000, 'failure_threshold' => 25))
-
         return new Breaker($name, $persistence, $params);
     }
 
     public function setThreshold($threshold) { $this->_threshold = $threshold; }
     public function getThreshold() { return $this->_threshold; }
 
+    public function setName($name) { $this->_name = $name; }
+    public function getName() { return $this->_name; }
+
     public function setTimeout($timeout) { $this->_timeout = $timeout; }
     public function getTimeout() { return $this->_timeout; }
+
+    public function setWillRetryAfterTimeout($willRetry) { if ($willRetry) { $this->_willRetry = true; } }
+    public function getWillRetryAfterTimeout() { return $this->_willRetry; }
 
     /**
      * Check if circuit breaker is currently closed

@@ -11,9 +11,15 @@ To construct a circuit breaker use:
 ```php
 $breaker = Breaker::build('breakerName', new ArrayPersistence);
 ```
-...then optionally (the default is 10) you can set the failure threshold...
+...or with parameters:
+```php
+Breaker::build('testBreaker', new ArrayPersistence, array('timeout' => 300, 'threshold' => 1, 'will_retry' => false));
+```
+...or set the values long-hand:
 ```php
 $breaker->setThreshold(1);
+$breaker->setTimeout(300);
+$breaker->setWillRetryAfterTimeout(false);
 ```
 
 The circuit breaker is used with the code:

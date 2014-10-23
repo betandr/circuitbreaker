@@ -9,7 +9,7 @@ feedback, by way of tripping the circuit breaker if the failures reach a certain
 To construct a circuit breaker use:
 
 ```php
-$breaker = new Breaker(new ArrayPersistence);
+$breaker = Breaker::build('breakerName', new ArrayPersistence);
 ```
 ...then optionally (the default is 10) you can set the failure threshold...
 ```php

@@ -26,14 +26,25 @@ use betandr\CircuitBreaker\Persistence\PersistenceInterface;
  */
 class Breaker
 {
+    private $_name;
     private $_threshold = 10;
     private $_persistence;
     private $_breakerClosed = true;
 
-    public function __construct(PersistenceInterface $persistence = null)
+    protected function __construct($name, $persistence, $params = null)
     {
         $this->_persistence = $persistence;
+        $this->_name = $name;
     }
+
+    public static function build($name, PersistenceInterface $persistence = null, $params = null)
+    {
+        // build('breakerName', array('check_timeout' => 6000, 'failure_threshold' => 25))
+
+        return new Breaker($name, $persistence, $params);
+    }
+
+
 
     public function setThreshold($threshold) {
         $this->_threshold = $threshold;

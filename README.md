@@ -53,24 +53,28 @@ if ($breaker->isClosed()) {
 }
 ```
 
-If the system reaches a threshold of failures (i.e. a back-end is not
-responding) then the system will 'trip' open the circuit so the request is no
-longer performed. This can prevent request from timing out and causing more issues
-by continually attempting requests on services which are experiencing issues. This
-way any subsequent requests can fail quickly and by handled by the client.
+If the system reaches a threshold of registered failures (the client may me experiencing
+something such as  a back-end not responding) it will 'trip' open the circuit so
+subsequent calls to isClosed return false (or it's opposite 'isOpen' method returns true).
+This can prevent the situation where requests time out which can cause more issues
+by continually attempting requests on services which are unavailable. So any
+subsequent requests can fail quickly and by handled by the client.
 
-If the circuit breaker opens then your logical test will fail in your mainline
-code. However if you subsequently register a successful transaction then it will
-re-close the circuit breaker and your code will be able to execute. This is so
-systems are able to recover if the upstream problem is resolved.
+If the circuit breaker opens due to the threshold being reached or by an explicit
+call to `open()`, the `isClosed()` method will return false. However if you
+subsequently register a successful transaction then it will re-close the circuit
+breaker, assuming the problems have now resolved and your code is able to execute.
+This is so systems are able to recover if the upstream problem is resolved.
 
 If 'will retry' (`set/getWillRetryAfterTimeout()`) is set to true, any calls to
-`isClosed` can return a true if the timeout (`set/getTimeout`) has expired since the
+`isClosed()` will return a true if the timeout (`set/getTimeout()`) has expired since the
 last registered failure. This is so systems are given the chance to recover and the
 circuit breaker can be re-closed if upstream services begin working again.
 In this 'half-open' mode, the client can try another request, if it fails then
 the timeout will be reset. If successful, the client can register a success
-which will close the breaker properly.
+which will close the breaker properly. By setting 'will retry' to false, the breaker
+will remain closed until explicitly closed with a successful transaction registered or
+by calling the explicit `close()` method (see 'Short-cut Operation').
 
 Short-cut Operation
 ----
@@ -80,7 +84,6 @@ The circuit breaker can be immediately tripped by using:
 ```php
 $breaker->open();
 ```
-
 ...and closed:
 ```php
 $breaker->close();
@@ -89,7 +92,9 @@ $breaker->close();
 ```php
 $breaker->reset();
 ```
-...which re-closes the circuit breaker and zeros the failure counter.
+...which re-closes the circuit breaker and zeros the failure counter. Note that
+this does not reset the last failure timestamp which is only ever set by an actual
+failure.
 
 Persistence
 ----

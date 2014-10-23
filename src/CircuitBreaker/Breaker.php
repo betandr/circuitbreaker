@@ -27,7 +27,8 @@ use betandr\CircuitBreaker\Persistence\PersistenceInterface;
 class Breaker
 {
     private $_name;
-    private $_threshold = 10;
+    private $_threshold = 25;
+    private $_timeout = 6000;
     private $_persistence;
     private $_breakerClosed = true;
 
@@ -35,27 +36,32 @@ class Breaker
     {
         $this->_persistence = $persistence;
         $this->_name = $name;
+
+        if (isset($params['threshold']) && is_int($params['threshold'])) {
+            $this->_threshold = $params['threshold'];
+        }
+
+        if (isset($params['timeout']) && is_int($params['timeout'])) {
+            $this->_timeout = $params['timeout'];
+        }
     }
 
     public static function build($name, PersistenceInterface $persistence = null, $params = null)
     {
+
         // build('breakerName', array('check_timeout' => 6000, 'failure_threshold' => 25))
 
         return new Breaker($name, $persistence, $params);
     }
 
+    public function setThreshold($threshold) { $this->_threshold = $threshold; }
+    public function getThreshold() { return $this->_threshold; }
 
-
-    public function setThreshold($threshold) {
-        $this->_threshold = $threshold;
-    }
-
-    public function getThreshold() {
-        return $this->_threshold;
-    }
+    public function setTimeout($timeout) { $this->_timeout = $timeout; }
+    public function getTimeout() { return $this->_timeout; }
 
     /**
-     * Check if circuit breaker is currently closed (an antonym for isOpen())
+     * Check if circuit breaker is currently closed
      *
      * @return a boolean
      */
@@ -65,7 +71,8 @@ class Breaker
     }
 
     /**
-     * Check if circuit breaker is currently open
+     * Check if circuit breaker is currently open. This is an antonym for isClosed()
+     * and always has the opposite boolean value.
      *
      * @return a boolean
      */

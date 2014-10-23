@@ -76,4 +76,35 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($breaker->isClosed(), 'Breaker should be closed when reset');
     }
 
+    public function testDefaultThresholdValue()
+    {
+        $breaker = Breaker::build('testBreaker', new ArrayPersistence);
+
+        $expectedThreshold = 25;
+        $this->assertEquals($expectedThreshold, $breaker->getThreshold(), 'Threshold should be '.$expectedThreshold.' by default');
+    }
+
+    public function testDefaultTimeoutValue()
+    {
+        $breaker = Breaker::build('testBreaker', new ArrayPersistence);
+
+        $expectedTimeout = 6000;
+        $this->assertEquals($expectedTimeout, $breaker->getTimeout(), 'Timeout should be '.$expectedTimeout.' by default');
+    }
+
+    public function testSettingThresholdViaParams()
+    {
+        $threshold = 99;
+        $breaker = Breaker::build('testBreaker', new ArrayPersistence, array('threshold' => $threshold));
+
+        $this->assertEquals($threshold, $breaker->getThreshold(), 'Threshold should be set in params');
+    }
+
+    public function testSettingTimeoutViaParams()
+    {
+        $timeout = 999;
+        $breaker = Breaker::build('testBreaker', new ArrayPersistence, array('timeout' => $timeout));
+
+        $this->assertEquals($timeout, $breaker->getTimeout(), 'Timeout should be set in params');
+    }
 }

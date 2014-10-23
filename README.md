@@ -3,7 +3,7 @@ CircuitBreaker (currently in development)
 
 This implementation of the CircuitBreaker pattern provide a mechanism for resilience
 against a cascade of failures which could adversely affect an application's performance.
-The CurcuitBreaker monitors successful and non-successful transactions then provides
+The CircuitBreaker monitors successful and non-successful transactions then provides
 feedback, by way of tripping the circuit breaker if the failures reach a certain threshold.
 
 To construct a circuit breaker use:
@@ -56,10 +56,15 @@ way any subsequent requests can fail quickly and by handled by the client.
 If the circuit breaker opens then your logical test will fail in your mainline
 code. However if you subsequently register a successful transaction then it will
 re-close the circuit breaker and your code will be able to execute. This is so
-systems are able to recover if the upstream problem is resolved. *This will be*
-*re-factored to use a 'half-open' method which will change the breaker into a*
-*half-state where exploratory transactions can be completed to test to see if the*
-*situation has resolved.*
+systems are able to recover if the upstream problem is resolved.
+
+If 'will retry' (`set/getWillRetryAfterTimeout()`) is set to true, any calls to
+`isClosed` can return a true if the timeout (`set/getTimeout`) has expired since the
+last registered failure. This is so systems are given the chance to recover and the
+circuit breaker can be re-closed if upstream services begin working again.
+In this 'half-open' mode, the client can try another request, if it fails then
+the timeout will be reset. If successful, the client can register a success
+which will close the breaker properly.
 
 Short-cut Operation
 ----
@@ -95,9 +100,3 @@ To run all tests, use:
 ```
 phpunit --bootstrap src/autoload.php tests
 ```
-
-TODO
-----
-
-* Add 'half-open' impl using time-outs to re-try
-* Add persistence mechanisms

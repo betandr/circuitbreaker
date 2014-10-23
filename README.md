@@ -31,10 +31,10 @@ $breaker->setWillRetryAfterTimeout(false);
 ```
 
 The default values are:
-* Breaker Closed on create: true
-* Threshold: 25 failures before the circuit breaker opens
-* Timeout: 6000ms (100 minutes) before the isClosed starts to return a 'half-open' response
-* Will Retry: true/the circuit  will attempt re-tries after the timeout has expired
+* _Breaker closed on create:_ true
+* _Threshold:_ 25 failures before the circuit breaker opens
+* _Timeout:_ 6000ms (100 minutes) before the isClosed starts to return a 'half-open' response
+* _Will Retry:_ true/the circuit  will attempt re-tries after the timeout has expired
 
 The circuit breaker is used with the code:
 

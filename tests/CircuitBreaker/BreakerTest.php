@@ -109,7 +109,7 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
     {
         $breaker = Breaker::build('testBreaker', new ArrayPersistence);
 
-        $expectedThreshold = 25;
+        $expectedThreshold = 5;
         $this->assertEquals($expectedThreshold, $breaker->getThreshold(), 'Threshold should be '.$expectedThreshold.' by default');
     }
 
@@ -117,7 +117,7 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
     {
         $breaker = Breaker::build('testBreaker', new ArrayPersistence);
 
-        $expectedTimeout = 6000;
+        $expectedTimeout = 60;
         $this->assertEquals($expectedTimeout, $breaker->getTimeout(), 'Timeout should be '.$expectedTimeout.' by default');
     }
 
@@ -139,7 +139,7 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
 
     public function testNonIntegerValueWillNotAffectThreshold()
     {
-        $defaultThreshold = 25;
+        $defaultThreshold = 5;
         $threshold = "INVALID_VALUE";
         $breaker = Breaker::build('testBreaker', new ArrayPersistence, array('threshold' => $threshold));
 
@@ -148,7 +148,7 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
 
     public function testNonIntegerValueWillNotAffectTimeout()
     {
-        $defaultTimeout = 6000;
+        $defaultTimeout = 60;
         $timeout = "INVALID_VALUE";
         $breaker = Breaker::build('testBreaker', new ArrayPersistence, array('timeout' => $timeout));
 
@@ -251,4 +251,12 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($breaker->isOpen(), 'Breaker should be open when failure threshold reached and retry is false');
     }
+
+    // public function testRegisteringSuccessReducesTheFailureCount()
+    // {
+    //     $threshold = 10;
+    //     $breaker = Breaker::build('testBreaker', new ArrayPersistence, array('threshold' => $threshold));
+    //
+    //     $breaker
+    // }
 }

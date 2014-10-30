@@ -26,31 +26,32 @@ use betandr\CircuitBreaker\Persistence\PersistenceInterface;
  */
 class Breaker
 {
-    private $_name;
-    private $_threshold = 5;
-    private $_timeout = 60;
-    private $_persistence;
-    private $_breakerClosed = true;
-    private $_willRetry = true;
-    private $_lastFailureTime;
-
-    // TODO protected and no underscore
+    private $name;
+    private $threshold = 5;
+    private $timeout = 60;
+    private $persistence;
+    private $breakerClosed = true;
+    private $willRetry = true;
+    private $lastFailureTime;
+    private $failureKey;
 
     protected function __construct($name, $persistence, $params = null)
     {
-        $this->_persistence = $persistence;
-        $this->_name = $name;
+        $this->persistence = $persistence;
+        $this->name = $name;
+
+        $this->failureKey = $name.'_failure_count_'.Breaker::generateSalt();
 
         if (isset($params['threshold']) && is_int($params['threshold'])) {
-            $this->_threshold = $params['threshold'];
+            $this->threshold = $params['threshold'];
         }
 
         if (isset($params['timeout']) && is_int($params['timeout'])) {
-            $this->_timeout = $params['timeout'];
+            $this->timeout = $params['timeout'];
         }
 
         if (isset($params['retry']) && is_bool($params['retry'])) {
-            $this->_willRetry = $params['retry'];
+            $this->willRetry = $params['retry'];
         }
     }
 
@@ -66,19 +67,26 @@ class Breaker
         return new Breaker($name, $persistence, $params);
     }
 
-    public function setThreshold($threshold) { $this->_threshold = $threshold; }
-    public function getThreshold() { return $this->_threshold; }
+    public function setThreshold($threshold) { $this->threshold = $threshold; }
+    public function getThreshold() { return $this->threshold; }
 
-    public function setName($name) { $this->_name = $name; }
-    public function getName() { return $this->_name; }
+    public function setName($name) { $this->name = $name; }
+    public function getName() { return $this->name; }
 
-    public function setTimeout($timeout) { $this->_timeout = $timeout; }
-    public function getTimeout() { return $this->_timeout; }
+    public function setTimeout($timeout) { $this->timeout = $timeout; }
+    public function getTimeout() { return $this->timeout; }
 
-    public function setWillRetryAfterTimeout($willRetry) { if ($willRetry) { $this->_willRetry = true; } }
-    public function getWillRetryAfterTimeout() { return $this->_willRetry; }
+    public function setWillRetryAfterTimeout($willRetry) { if ($willRetry) { $this->willRetry = true; } }
+    public function getWillRetryAfterTimeout() { return $this->willRetry; }
 
-    public function getLastFailureTime() { return $this->_lastFailureTime; }
+    public function getLastFailureTime() { return $this->lastFailureTime; }
+
+    public function getNumFailures()
+    {
+        $numFails = $this->persistence->get($failureKey);
+
+        return ($numFails == NULL) ? 0 : $numFails;
+    }
 
     /**
      * Check if circuit breaker is currently closed. If 'will retry' is set to true,
@@ -93,18 +101,18 @@ class Breaker
      */
     public function isClosed()
     {
-        if (!$this->_breakerClosed && $this->_willRetry && isset($this->_lastFailureTime)) {
+        if (!$this->breakerClosed && $this->willRetry && isset($this->lastFailureTime)) {
             // If threshold reached and we want to retry, return true
             // Don't reset breaker though, let a registered success do that.
             $now = time();
-            $lastFailurePlusTimeout = $this->_lastFailureTime + ($this->_timeout * 1000);
+            $lastFailurePlusTimeout = $this->lastFailureTime + $this->timeout;
 
             if ($now >= $lastFailurePlusTimeout) {
                 return true;
             }
         }
 
-        return $this->_breakerClosed;
+        return $this->breakerClosed;
     }
 
     /**
@@ -123,11 +131,15 @@ class Breaker
      */
     public function success()
     {
-        if ($this->_breakerClosed === false) {
-            $this->_breakerClosed = true;
+        if ($this->breakerClosed === false) {
+            $this->breakerClosed = true;
         }
 
-        // TODO failures-- unless == 0
+        $numFails = $this->persistence->get($this->failureKey);
+
+        if ($this->threshold > 0) { $numFails--; }
+
+        $this->persistence->set($this->failureKey, $numFails);
     }
 
     /**
@@ -135,22 +147,20 @@ class Breaker
      */
     public function failure()
     {
-        $key = 'failure_transactions'; // + breaker name & maybe salt
-        $numFails = $this->_persistence->get($key);
+        $numFails = $this->persistence->get($this->failureKey);
 
         // TODO persist last failure
 
-        // TODO stop failure count at threshold
-
         if ($numFails === NULL) { $numFails = 0; }
-        $numFails++;
 
-        if ($numFails >= $this->_threshold) {
-            $this->_breakerClosed = false;
-            $this->_lastFailureTime = time();
+        if ($numFails < $this->threshold) { $numFails++; }
+
+        if ($numFails >= $this->threshold) {
+            $this->breakerClosed = false;
+            $this->lastFailureTime = time();
         }
 
-        $this->_persistence->set($key, $numFails);
+        $this->persistence->set($this->failureKey, $numFails);
     }
 
     /**
@@ -158,7 +168,7 @@ class Breaker
      */
     public function open()
     {
-        $this->_breakerClosed = false;
+        $this->breakerClosed = false;
     }
 
     /**
@@ -166,7 +176,7 @@ class Breaker
      */
     public function close()
     {
-        $this->_breakerClosed = true;
+        $this->breakerClosed = true;
     }
 
     /**
@@ -175,8 +185,7 @@ class Breaker
     public function reset()
     {
         $this->close();
-        $key = 'failure_transactions';
-        $this->_persistence->set($key, 0);
+        $this->persistence->set($this->failureKey, 0);
     }
 
     /**
@@ -187,5 +196,10 @@ class Breaker
     public function __toString()
     {
         return ($this->isClosed()) ? "CircuitBreaker [CLOSED]" : "CircuitBreaker [OPEN]";
+    }
+
+    private static function generateSalt()
+    {
+        return str_shuffle(MD5(microtime()));
     }
 }

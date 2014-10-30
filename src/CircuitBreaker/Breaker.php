@@ -27,12 +27,14 @@ use betandr\CircuitBreaker\Persistence\PersistenceInterface;
 class Breaker
 {
     private $_name;
-    private $_threshold = 25;
-    private $_timeout = 6000;
+    private $_threshold = 5;
+    private $_timeout = 60;
     private $_persistence;
     private $_breakerClosed = true;
     private $_willRetry = true;
     private $_lastFailureTime;
+
+    // TODO protected and no underscore
 
     protected function __construct($name, $persistence, $params = null)
     {
@@ -91,13 +93,13 @@ class Breaker
      */
     public function isClosed()
     {
-        if ($this->_willRetry) {
+        if (!$this->_breakerClosed && $this->_willRetry && isset($this->_lastFailureTime)) {
             // If threshold reached and we want to retry, return true
             // Don't reset breaker though, let a registered success do that.
             $now = time();
             $lastFailurePlusTimeout = $this->_lastFailureTime + ($this->_timeout * 1000);
 
-            if (isset($this->_lastFailureTime) && ($now >= $lastFailurePlusTimeout)) {
+            if ($now >= $lastFailurePlusTimeout) {
                 return true;
             }
         }
@@ -124,6 +126,8 @@ class Breaker
         if ($this->_breakerClosed === false) {
             $this->_breakerClosed = true;
         }
+
+        // TODO failures-- unless == 0
     }
 
     /**
@@ -131,17 +135,22 @@ class Breaker
      */
     public function failure()
     {
-        $key = 'failure_transactions';
-        $value = $this->_persistence->get($key);
-        if ($value === NULL) { $value = 0; }
-        $value++;
+        $key = 'failure_transactions'; // + breaker name & maybe salt
+        $numFails = $this->_persistence->get($key);
 
-        if ($value >= $this->_threshold) {
+        // TODO persist last failure
+
+        // TODO stop failure count at threshold
+
+        if ($numFails === NULL) { $numFails = 0; }
+        $numFails++;
+
+        if ($numFails >= $this->_threshold) {
             $this->_breakerClosed = false;
             $this->_lastFailureTime = time();
         }
 
-        $this->_persistence->set($key, $value);
+        $this->_persistence->set($key, $numFails);
     }
 
     /**
@@ -175,7 +184,7 @@ class Breaker
      *
      * @return a string value representing the object
      */
-    public function to_s()
+    public function __toString()
     {
         return ($this->isClosed()) ? "CircuitBreaker [CLOSED]" : "CircuitBreaker [OPEN]";
     }

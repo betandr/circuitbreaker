@@ -26,14 +26,14 @@ use betandr\CircuitBreaker\Persistence\PersistenceInterface;
  */
 class Breaker
 {
-    private $name;
-    private $threshold = 5;
-    private $timeout = 60;
-    private $persistence;
-    private $breakerClosed = true;
-    private $willRetry = true;
-    private $lastFailureTime;
-    private $failureKey;
+    protected $name;
+    protected $threshold = 5;
+    protected $timeout = 60;
+    protected $persistence;
+    protected $breakerClosed = true;
+    protected $willRetry = true;
+    protected $failureKey;
+    protected $lastFailureTimeKey;
 
     protected function __construct($name, $persistence, $params = null)
     {
@@ -41,6 +41,7 @@ class Breaker
         $this->name = $name;
 
         $this->failureKey = $name.'_failure_count_'.Breaker::generateSalt();
+        $this->lastFailureTimeKey = $name.'_last_failure_time_'.Breaker::generateSalt();
 
         if (isset($params['threshold']) && is_int($params['threshold'])) {
             $this->threshold = $params['threshold'];
@@ -79,12 +80,11 @@ class Breaker
     public function setWillRetryAfterTimeout($willRetry) { if ($willRetry) { $this->willRetry = true; } }
     public function getWillRetryAfterTimeout() { return $this->willRetry; }
 
-    public function getLastFailureTime() { return $this->lastFailureTime; }
+    public function getLastFailureTime() { return $this->persistence->get($this->lastFailureTimeKey); }
 
     public function getNumFailures()
     {
-        $numFails = $this->persistence->get($failureKey);
-
+        $numFails = $this->persistence->get($this->failureKey);
         return ($numFails == NULL) ? 0 : $numFails;
     }
 
@@ -101,11 +101,13 @@ class Breaker
      */
     public function isClosed()
     {
-        if (!$this->breakerClosed && $this->willRetry && isset($this->lastFailureTime)) {
+        $lastFailureTime = $this->persistence->get($this->lastFailureTimeKey);
+
+        if (!$this->breakerClosed && $this->willRetry && isset($lastFailureTime)) {
             // If threshold reached and we want to retry, return true
             // Don't reset breaker though, let a registered success do that.
             $now = time();
-            $lastFailurePlusTimeout = $this->lastFailureTime + $this->timeout;
+            $lastFailurePlusTimeout = $lastFailureTime + $this->timeout;
 
             if ($now >= $lastFailurePlusTimeout) {
                 return true;
@@ -149,18 +151,17 @@ class Breaker
     {
         $numFails = $this->persistence->get($this->failureKey);
 
-        // TODO persist last failure
-
         if ($numFails === NULL) { $numFails = 0; }
 
         if ($numFails < $this->threshold) { $numFails++; }
 
         if ($numFails >= $this->threshold) {
             $this->breakerClosed = false;
-            $this->lastFailureTime = time();
+            $this->persistence->set($this->lastFailureTimeKey, time());
         }
 
         $this->persistence->set($this->failureKey, $numFails);
+
     }
 
     /**

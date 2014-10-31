@@ -35,7 +35,14 @@ class Breaker
     protected $failureKey;
     protected $lastFailureTimeKey;
 
-    protected function __construct($name, $persistence, $params = null)
+    /**
+     * Construct a new Breaker instance.
+     *
+     * @param $name a string value to identify this breaker
+     *
+     * @return a boolean
+     */
+    public function __construct($name, $persistence, $params = null)
     {
         $this->persistence = $persistence;
         $this->name = $name;
@@ -54,18 +61,6 @@ class Breaker
         if (isset($params['retry']) && is_bool($params['retry'])) {
             $this->willRetry = $params['retry'];
         }
-    }
-
-    /**
-     * Construct a new Breaker instance.
-     *
-     * @param $name a string value to identify this breaker
-     *
-     * @return a boolean
-     */
-    public static function build($name, PersistenceInterface $persistence = null, $params = null)
-    {
-        return new Breaker($name, $persistence, $params);
     }
 
     public function setThreshold($threshold) { $this->threshold = $threshold; }

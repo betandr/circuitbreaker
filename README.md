@@ -9,7 +9,7 @@ feedback, by way of tripping (opening) the circuit breaker, if the failures reac
 To construct a circuit breaker (with ArrayPersistence storage) use:
 
 ```php
-$breaker = Breaker::build('breakerName', new ArrayPersistence);
+$breaker = new Breaker('breakerName', new ArrayPersistence);
 ```
 ...or with parameters:
 ```php
@@ -32,8 +32,8 @@ $breaker->setWillRetryAfterTimeout(false);
 
 The default values are:
 * _Breaker closed on create:_ true
-* _Threshold:_ 25 failures before the circuit breaker opens
-* _Timeout:_ 6000ms (100 minutes) before calls to `isClosed` starts to return a 'half-open' response
+* _Threshold:_ 5 failures before the circuit breaker opens
+* _Timeout:_ 60s (1 minute) before calls to `isClosed` starts to return a 'half-open' response
 * _Will Retry:_ true/the circuit  will attempt re-tries after the timeout has expired
 
 The circuit breaker is used with the code:

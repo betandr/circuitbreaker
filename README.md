@@ -113,7 +113,7 @@ interface PersistenceInterface
 }
 ```
 
-...and passing that into the `Breaker::build` factory method. Such as:
+...and passing that into the constructor. Such as:
 
 ```php
 $breaker = new Breaker('testBreaker', new YourOwnPersistenceProvider);

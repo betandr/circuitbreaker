@@ -125,5 +125,5 @@ Tests
 To run all tests, use:
 
 ```
-phpunit --bootstrap src/autoload.php tests
+script/test
 ```

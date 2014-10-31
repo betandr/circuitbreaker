@@ -110,7 +110,11 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
         $breaker = new Breaker('testBreaker', new ArrayPersistence);
 
         $expectedThreshold = 5;
-        $this->assertEquals($expectedThreshold, $breaker->getThreshold(), 'Threshold should be '.$expectedThreshold.' by default');
+        $this->assertEquals(
+            $expectedThreshold,
+            $breaker->getThreshold(),
+            'Threshold should be '.$expectedThreshold.' by default'
+        );
     }
 
     public function testDefaultTimeoutValue()
@@ -118,7 +122,11 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
         $breaker = new Breaker('testBreaker', new ArrayPersistence);
 
         $expectedTimeout = 60;
-        $this->assertEquals($expectedTimeout, $breaker->getTimeout(), 'Timeout should be '.$expectedTimeout.' by default');
+        $this->assertEquals(
+            $expectedTimeout,
+            $breaker->getTimeout(),
+            'Timeout should be '.$expectedTimeout.' by default'
+        );
     }
 
     public function testSettingThresholdViaParams()
@@ -249,7 +257,10 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
 
         $breaker->failure();
 
-        $this->assertTrue($breaker->isOpen(), 'Breaker should be open when failure threshold reached and retry is false');
+        $this->assertTrue(
+            $breaker->isOpen(),
+            'Breaker should be open when failure threshold reached and retry is false'
+        );
     }
 
     // public function testRegisteringSuccessReducesTheFailureCount()

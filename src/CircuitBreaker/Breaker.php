@@ -63,24 +63,57 @@ class Breaker
         }
     }
 
-    public function setThreshold($threshold) { $this->threshold = $threshold; }
-    public function getThreshold() { return $this->threshold; }
+    public function setThreshold($threshold)
+    {
+        $this->threshold = $threshold;
+    }
 
-    public function setName($name) { $this->name = $name; }
-    public function getName() { return $this->name; }
+    public function getThreshold()
+    {
+        return $this->threshold;
+    }
 
-    public function setTimeout($timeout) { $this->timeout = $timeout; }
-    public function getTimeout() { return $this->timeout; }
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
 
-    public function setWillRetryAfterTimeout($willRetry) { if ($willRetry) { $this->willRetry = true; } }
-    public function getWillRetryAfterTimeout() { return $this->willRetry; }
+    public function getName()
+    {
+        return $this->name;
+    }
 
-    public function getLastFailureTime() { return $this->persistence->get($this->lastFailureTimeKey); }
+    public function setTimeout($timeout)
+    {
+        $this->timeout = $timeout;
+    }
+
+    public function getTimeout()
+    {
+        return $this->timeout;
+    }
+
+    public function setWillRetryAfterTimeout($willRetry)
+    {
+        if ($willRetry) {
+            $this->willRetry = true;
+        }
+    }
+
+    public function getWillRetryAfterTimeout()
+    {
+        return $this->willRetry;
+    }
+
+    public function getLastFailureTime()
+    {
+        return $this->persistence->get($this->lastFailureTimeKey);
+    }
 
     public function getNumFailures()
     {
         $numFails = $this->persistence->get($this->failureKey);
-        return ($numFails == NULL) ? 0 : $numFails;
+        return ($numFails == null) ? 0 : $numFails;
     }
 
     /**
@@ -134,7 +167,9 @@ class Breaker
 
         $numFails = $this->persistence->get($this->failureKey);
 
-        if ($this->threshold > 0) { $numFails--; }
+        if ($this->threshold > 0) {
+            $numFails--;
+        }
 
         $this->persistence->set($this->failureKey, $numFails);
     }
@@ -146,9 +181,13 @@ class Breaker
     {
         $numFails = $this->persistence->get($this->failureKey);
 
-        if ($numFails === NULL) { $numFails = 0; }
+        if ($numFails === null) {
+            $numFails = 0;
+        }
 
-        if ($numFails < $this->threshold) { $numFails++; }
+        if ($numFails < $this->threshold) {
+            $numFails++;
+        }
 
         if ($numFails >= $this->threshold) {
             $this->breakerClosed = false;

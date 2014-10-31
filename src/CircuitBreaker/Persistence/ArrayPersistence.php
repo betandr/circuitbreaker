@@ -46,5 +46,4 @@ class ArrayPersistence implements PersistenceInterface
     {
         $this->storage[$key] = $value;
     }
-
 }

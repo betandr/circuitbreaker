@@ -116,7 +116,7 @@ interface PersistenceInterface
 ...and passing that into the `Breaker::build` factory method. Such as:
 
 ```php
-$breaker = Breaker::build('testBreaker', new YourOwnPersistenceProvider);
+$breaker = new Breaker('testBreaker', new YourOwnPersistenceProvider);
 ```
 
 Tests

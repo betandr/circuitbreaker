@@ -1,0 +1,1 @@
+vendor/bin/phpcs . --ignore=build,vendor --standard=PSR2 -p

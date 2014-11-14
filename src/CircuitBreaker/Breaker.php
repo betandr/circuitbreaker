@@ -12,6 +12,7 @@
 
 namespace betandr\CircuitBreaker;
 
+use Psr\Log\LoggerInterface;
 use betandr\CircuitBreaker\Persistence\PersistenceInterface;
 
 /**
@@ -34,6 +35,7 @@ class Breaker
     protected $willRetry = true;
     protected $failureKey;
     protected $lastFailureTimeKey;
+    protected $logger;
 
     /**
      * Construct a new Breaker instance.
@@ -42,10 +44,13 @@ class Breaker
      *
      * @return a boolean
      */
-    public function __construct($name, $persistence, $params = null)
+    public function __construct($name, PersistenceInterface $persistence, LoggerInterface $logger = null, $params = null)
     {
+        $this->log("Instantiating breaker: ".$name);
+
         $this->persistence = $persistence;
         $this->name = $name;
+        $this->logger = $logger;
 
         $this->failureKey = $name.'_failure_count_'.Breaker::generateSalt();
         $this->lastFailureTimeKey = $name.'_last_failure_time_'.Breaker::generateSalt();
@@ -129,6 +134,7 @@ class Breaker
      */
     public function isClosed()
     {
+        $this->log("isClosed() called");
         $lastFailureTime = $this->persistence->get($this->lastFailureTimeKey);
 
         if (!$this->breakerClosed && $this->willRetry && isset($lastFailureTime)) {
@@ -138,6 +144,7 @@ class Breaker
             $lastFailurePlusTimeout = $lastFailureTime + $this->timeout;
 
             if ($now >= $lastFailurePlusTimeout) {
+                $this->log("Last failure exceeds timeout, breaker 'half-open'");
                 return true;
             }
         }
@@ -153,6 +160,7 @@ class Breaker
      */
     public function isOpen()
     {
+        $this->log("isOpen() called");
         return !$this->isClosed();
     }
 
@@ -161,6 +169,8 @@ class Breaker
      */
     public function success()
     {
+        $this->log("success() called");
+
         if ($this->breakerClosed === false) {
             $this->breakerClosed = true;
         }
@@ -171,6 +181,8 @@ class Breaker
             $numFails--;
         }
 
+        $this->log("Current number of fails: ".$numFails);
+
         $this->persistence->set($this->failureKey, $numFails);
     }
 
@@ -179,6 +191,8 @@ class Breaker
      */
     public function failure()
     {
+        $this->log("failure() called");
+
         $numFails = $this->persistence->get($this->failureKey);
 
         if ($numFails === null) {
@@ -189,13 +203,15 @@ class Breaker
             $numFails++;
         }
 
+        $this->log("Current number of fails: ".$numFails);
+
         if ($numFails >= $this->threshold) {
+            $this->log("Threshold reached, breaker opening");
             $this->breakerClosed = false;
             $this->persistence->set($this->lastFailureTimeKey, time());
         }
 
         $this->persistence->set($this->failureKey, $numFails);
-
     }
 
     /**
@@ -203,6 +219,7 @@ class Breaker
      */
     public function open()
     {
+        $this->log("open() called.");
         $this->breakerClosed = false;
     }
 
@@ -211,6 +228,7 @@ class Breaker
      */
     public function close()
     {
+        $this->log("close() called.");
         $this->breakerClosed = true;
     }
 
@@ -219,6 +237,7 @@ class Breaker
      */
     public function reset()
     {
+        $this->log("reset() called. Reseting failures.");
         $this->close();
         $this->persistence->set($this->failureKey, 0);
     }
@@ -231,6 +250,13 @@ class Breaker
     public function __toString()
     {
         return ($this->isClosed()) ? "CircuitBreaker [CLOSED]" : "CircuitBreaker [OPEN]";
+    }
+
+    private function log($message)
+    {
+        if (isset($this->logger)) {
+            $this->logger->info($message);
+        }
     }
 
     private static function generateSalt()

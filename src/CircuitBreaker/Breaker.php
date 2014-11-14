@@ -256,6 +256,9 @@ class Breaker
         return ($this->isClosed()) ? "CircuitBreaker [CLOSED]" : "CircuitBreaker [OPEN]";
     }
 
+    /**
+     * Log message if a logger has been specified
+     */
     private function log($message)
     {
         if (isset($this->logger)) {

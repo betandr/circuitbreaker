@@ -56,8 +56,8 @@ class Breaker
         $this->name = $name;
         $this->logger = $logger;
 
-        $this->failureKey = $name.'_failure_count_'.Breaker::generateSalt();
-        $this->lastFailureTimeKey = $name.'_last_failure_time_'.Breaker::generateSalt();
+        $this->failureKey = $name.'_failure_count_';
+        $this->lastFailureTimeKey = $name.'_last_failure_time_';
 
         if (isset($params['threshold']) && is_int($params['threshold'])) {
             $this->threshold = $params['threshold'];
@@ -261,10 +261,5 @@ class Breaker
         if (isset($this->logger)) {
             $this->logger->info($message);
         }
-    }
-
-    private static function generateSalt()
-    {
-        return str_shuffle(MD5(microtime()));
     }
 }

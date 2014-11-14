@@ -44,8 +44,12 @@ class Breaker
      *
      * @return a boolean
      */
-    public function __construct($name, PersistenceInterface $persistence, LoggerInterface $logger = null, $params = null)
-    {
+    public function __construct(
+        $name,
+        PersistenceInterface $persistence,
+        LoggerInterface $logger = null,
+        $params = null
+    ) {
         $this->log("Instantiating breaker: ".$name);
 
         $this->persistence = $persistence;

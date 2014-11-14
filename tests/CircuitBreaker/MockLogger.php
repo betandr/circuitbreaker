@@ -27,55 +27,55 @@ use betandr\CircuitBreaker\Persistence\PersistenceInterface;
 */
 class MockLogger implements LoggerInterface
 {
-	protected $count = 0;
+    protected $count = 0;
 
-	public function numberOfResponses()
-	{
-		return $this->count;
-	}
+    public function numberOfResponses()
+    {
+        return $this->count;
+    }
 
-	public function info($message, array $context = array())
-	{
-		$this->count++;
-	}
+    public function info($message, array $context = array())
+    {
+        $this->count++;
+    }
 
-	public function emergency($message, array $context = array())
-	{
-	  $this->count++;
-	}
+    public function emergency($message, array $context = array())
+    {
+        $this->count++;
+    }
 
     public function alert($message, array $context = array())
-	{
-	  $this->count++;
-	}
+    {
+        $this->count++;
+    }
 
     public function critical($message, array $context = array())
-	{
-	  $this->count++;
-	}
+    {
+        $this->count++;
+    }
 
     public function error($message, array $context = array())
-	{
-	  $this->count++;
-	}
+    {
+        $this->count++;
+    }
 
     public function warning($message, array $context = array())
-	{
-	  $this->count++;
-	}
+    {
+        $this->count++;
+    }
 
     public function notice($message, array $context = array())
-	{
-	  $this->count++;
-	}
+    {
+        $this->count++;
+    }
 
     public function debug($message, array $context = array())
-	{
-	  $this->count++;
-	}
+    {
+        $this->count++;
+    }
 
     public function log($level, $message, array $context = array())
-	{
-	  $this->count++;
-	}
+    {
+        $this->count++;
+    }
 }

@@ -1,4 +1,4 @@
-CircuitBreaker (v 0.1)
+PHP CircuitBreaker (v 0.1)
 ==============
 
 This implementation of the CircuitBreaker pattern provide a mechanism for resilience

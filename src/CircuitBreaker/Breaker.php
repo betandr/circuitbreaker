@@ -183,6 +183,10 @@ class Breaker
 
         if ($this->threshold > 0) {
             $numFails--;
+
+            if ($numFails < 0) {
+                $numFails = 0;
+            }
         }
 
         $this->log("Current number of fails: ".$numFails);

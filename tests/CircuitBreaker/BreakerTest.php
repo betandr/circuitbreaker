@@ -44,6 +44,19 @@ class BreakerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($breaker->isClosed(), 'Breaker should be closed before threshold reached');
     }
 
+    public function testBreakerThresholdIsNotAffectedByTheNumberOfPreviousSuccesses() {
+        $threshold = 2;
+        $breaker = new Breaker('testBreaker', new ArrayPersistence, null, array('threshold' => $threshold));
+
+        $breaker->failure();
+        $breaker->success();
+        $breaker->success();
+        $breaker->failure();
+        $breaker->failure();
+
+        $this->assertTrue($breaker->isOpen(), 'Breaker should be open when threshold reached');
+    }
+
     public function testOpenBreakerClosesWhenSuccessRegistered()
     {
         $threshold = 1;
